@@ -1,4 +1,5 @@
 # StayBook
+<<<<<<< HEAD
 
 Plataforma web de gestión y reservas de alojamientos desarrollada con Laravel, PHP, Blade, Bootstrap y MySQL.
 
@@ -18,9 +19,12 @@ StayBook permitirá gestionar alojamientos y administrar sus reservas mediante u
 # Equipo de trabajo
 
 - Marcela Saldarriaga: Líder técnico y responsable de calidad.
-- Stiven: Responsable de pruebas.
-- Camila: Responsable de documentación.
+- Stiven Arcila: Responsable de pruebas.
+- Camila Triana: Responsable de documentación.
 
 # Estructura documental
 
 La documentación del proyecto estará organizada en la carpeta `docs/`.
+=======
+Plataforma web de gestión y reservas de alojamientos desarrollada con Laravel, PHP, Blade, Bootstrap y MySQL.
+>>>>>>> origin/main
