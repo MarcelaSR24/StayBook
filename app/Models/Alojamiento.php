@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Alojamiento extends Model
 {
@@ -17,4 +18,9 @@ class Alojamiento extends Model
         'capacidad',
         'estado',
     ];
+
+    public function reservas(): HasMany
+    {
+        return $this->hasMany(Reserva::class);
+    }
 }
