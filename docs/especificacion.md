@@ -14,7 +14,7 @@ Establecer los requisitos funcionales y no funcionales que debe cumplir StayBook
 
 ### Especificaciones funcionales
 
-El sistema debe cumplir con las siguientes funcionalidades:
+El sistema StayBook debe cumplir con los siguientes requisitos funcionales, los cuales describen las operaciones que pueden realizar los usuarios dentro de la aplicación.
 
 | Código | Requisito funcional | Descripción |
 |---|---|---|
