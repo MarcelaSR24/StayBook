@@ -16,6 +16,8 @@ class ReservaController extends Controller
 {
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', Reserva::class);
+
         $user = $request->user();
         $query = Reserva::with(['alojamiento', 'usuario'])->latest();
 
