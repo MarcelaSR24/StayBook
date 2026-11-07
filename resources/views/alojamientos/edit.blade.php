@@ -37,11 +37,24 @@
                     </div>
                 @endif
 
-                <form action="{{ route('alojamientos.update', $alojamiento) }}" method="POST">
+                @php($updateRoute = Auth::user()->isRole('admin') ? 'admin.alojamientos.update' : 'alojamientos.update')
+                <form action="{{ route($updateRoute, $alojamiento) }}" method="POST">
                     @csrf
                     @method('PUT')
 
                     <div class="row">
+                        @if(Auth::user()->isRole('admin'))
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Propietario asignado</label>
+                                <select name="propietario_id" class="form-select">
+                                    <option value="">Sin propietario asignado</option>
+                                    @foreach($propietarios as $propietario)
+                                        <option value="{{ $propietario->id }}" @selected(old('propietario_id', $alojamiento->user_id) == $propietario->id)>{{ $propietario->name }} ({{ $propietario->email }})</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Las publicaciones heredadas quedan sin asignar hasta que administración seleccione una cuenta.</small>
+                            </div>
+                        @endif
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Nombre del alojamiento *</label>
                             <input type="text" name="nombre" class="form-control"

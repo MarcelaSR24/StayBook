@@ -15,6 +15,10 @@
             <a class="navbar-brand fw-bold" href="{{ route('alojamientos.index') }}">
                 StayBook
             </a>
+            <div class="d-flex gap-2">
+                @auth<a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-sm">Panel</a>@endauth
+                @guest<a href="{{ route('login') }}" class="btn btn-outline-light btn-sm">Iniciar sesión</a>@endguest
+            </div>
         </div>
     </nav>
 
@@ -81,10 +85,13 @@
                 <hr>
 
                 <div class="d-flex gap-2">
-                    <a href="{{ route('alojamientos.edit', $alojamiento) }}"
-                       class="btn btn-warning">
-                        Editar alojamiento
-                    </a>
+                    @if(Auth::check() && Auth::user()->isRole('client'))
+                        <a href="{{ route('reservas.create', ['alojamiento_id' => $alojamiento->id]) }}" class="btn btn-primary">Reservar</a>
+                    @endif
+                    @can('update', $alojamiento)
+                        @php($editRoute = Auth::user()->isRole('admin') ? 'admin.alojamientos.edit' : 'alojamientos.edit')
+                        <a href="{{ route($editRoute, $alojamiento) }}" class="btn btn-warning">Editar alojamiento</a>
+                    @endcan
 
                     <a href="{{ route('alojamientos.index') }}"
                        class="btn btn-secondary">

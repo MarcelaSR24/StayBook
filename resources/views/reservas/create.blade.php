@@ -87,7 +87,7 @@
                                                 value="{{ $alojamiento->id }}"
                                                 data-precio="{{ $alojamiento->precio_por_noche }}"
                                                 data-capacidad="{{ $alojamiento->capacidad }}"
-                                                {{ old('alojamiento_id') == $alojamiento->id ? 'selected' : '' }}>
+                                                {{ old('alojamiento_id', request('alojamiento_id')) == $alojamiento->id ? 'selected' : '' }}>
                                                 {{ $alojamiento->nombre }} -
                                                 {{ $alojamiento->ciudad }} -
                                                 ${{ number_format($alojamiento->precio_por_noche, 0, ',', '.') }} por noche
@@ -143,13 +143,16 @@
                                     </small>
                                 </div>
 
-                                <div class="alert alert-info">
-                                    <strong>Precio estimado:</strong>
-                                    <span id="precio_total">$0</span>
-
-                                    <p class="mb-0 mt-1 small">
-                                        El precio final se calculará automáticamente al registrar la reserva.
-                                    </p>
+                                <div class="alert alert-info" aria-live="polite">
+                                    <strong>Resumen estimado</strong>
+                                    <dl class="row mb-1 mt-2">
+                                        <dt class="col-7">Entrada</dt><dd class="col-5" id="resumen_entrada">—</dd>
+                                        <dt class="col-7">Salida</dt><dd class="col-5" id="resumen_salida">—</dd>
+                                        <dt class="col-7">Noches</dt><dd class="col-5" id="resumen_noches">0</dd>
+                                        <dt class="col-7">Precio por noche</dt><dd class="col-5" id="resumen_precio_noche">$0</dd>
+                                        <dt class="col-7">Precio total</dt><dd class="col-5 fw-bold" id="precio_total">$0</dd>
+                                    </dl>
+                                    <p class="mb-0 small">El servidor volverá a calcular el precio al confirmar.</p>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
@@ -182,6 +185,17 @@
         const huespedes = document.getElementById('cantidad_huespedes');
         const precioTotal = document.getElementById('precio_total');
         const capacidadTexto = document.getElementById('capacidad');
+        const resumenEntrada = document.getElementById('resumen_entrada');
+        const resumenSalida = document.getElementById('resumen_salida');
+        const resumenNoches = document.getElementById('resumen_noches');
+        const resumenPrecioNoche = document.getElementById('resumen_precio_noche');
+        const formatoPrecio = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+        function formatoFecha(valor) {
+            if (!valor) return '—';
+            const [anio, mes, dia] = valor.split('-').map(Number);
+            return new Intl.DateTimeFormat('es-CO').format(new Date(anio, mes - 1, dia));
+        }
 
         function calcularPrecio() {
             if (!alojamiento || !entrada || !salida) {
@@ -192,6 +206,9 @@
 
             const precio = Number(opcion.dataset.precio || 0);
             const capacidad = Number(opcion.dataset.capacidad || 0);
+            resumenEntrada.textContent = formatoFecha(entrada.value);
+            resumenSalida.textContent = formatoFecha(salida.value);
+            resumenPrecioNoche.textContent = formatoPrecio.format(precio);
 
             capacidadTexto.textContent = capacidad
                 ? `Capacidad máxima: ${capacidad} personas.`
@@ -203,7 +220,7 @@
                 huespedes.removeAttribute('max');
             }
 
-            if (entrada.value && salida.value && precio > 0) {
+            if (entrada.value && salida.value && precio >= 0) {
                 const fechaEntrada = new Date(entrada.value + 'T00:00:00');
                 const fechaSalida = new Date(salida.value + 'T00:00:00');
 
@@ -212,19 +229,22 @@
 
                 if (noches > 0) {
                     const total = noches * precio;
-
-                    precioTotal.textContent = '$' + total.toLocaleString('es-CO');
+                    resumenNoches.textContent = String(noches);
+                    precioTotal.textContent = formatoPrecio.format(total);
                     return;
                 }
             }
 
-            precioTotal.textContent = '$0';
+            resumenNoches.textContent = '0';
+            precioTotal.textContent = formatoPrecio.format(0);
         }
 
         alojamiento?.addEventListener('change', calcularPrecio);
         entrada?.addEventListener('change', () => {
             if (entrada.value) {
-                salida.min = entrada.value;
+                const diaSiguiente = new Date(entrada.value + 'T00:00:00');
+                diaSiguiente.setDate(diaSiguiente.getDate() + 1);
+                salida.min = `${diaSiguiente.getFullYear()}-${String(diaSiguiente.getMonth() + 1).padStart(2, '0')}-${String(diaSiguiente.getDate()).padStart(2, '0')}`;
                 if (salida.value && salida.value <= entrada.value) {
                     salida.value = '';
                 }

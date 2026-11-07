@@ -1,123 +1,142 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Alojamiento;
 use App\Models\Reserva;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ReservaController extends Controller
 {
-    // Mostrar las reservas del usuario autenticado
-    public function index()
+    public function index(Request $request): View
     {
-        $reservas = Reserva::with('alojamiento')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
+        $user = $request->user();
+        $query = Reserva::with(['alojamiento', 'usuario'])->latest();
 
-        return view('reservas.index', compact('reservas'));
+        if ($user->isRole(User::ROLE_CLIENT)) {
+            $query->where('user_id', $user->id);
+        } elseif ($user->isRole(User::ROLE_OWNER)) {
+            $query->whereHas('alojamiento', fn ($alojamientos) => $alojamientos->where('user_id', $user->id));
+        }
+
+        return view('reservas.index', ['reservas' => $query->paginate(20)]);
     }
 
-    // Mostrar formulario para crear una reserva
-    public function create()
+    public function create(): View
     {
-        $alojamientos = Alojamiento::where('estado', 'disponible')
-            ->orderBy('nombre')
-            ->get();
+        $this->authorize('create', Reserva::class);
+        $alojamientos = Alojamiento::disponibles()->orderBy('nombre')->get();
 
         return view('reservas.create', compact('alojamientos'));
     }
 
-    // Guardar una nueva reserva
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Reserva::class);
+
         $datos = $request->validate([
-            'alojamiento_id' => 'required|exists:alojamientos,id',
-            'fecha_entrada' => 'required|date|after_or_equal:today',
-            'fecha_salida' => 'required|date|after:fecha_entrada',
-            'cantidad_huespedes' => 'required|integer|min:1',
+            'alojamiento_id' => ['required', 'exists:alojamientos,id'],
+            'fecha_entrada' => ['required', 'date', 'after_or_equal:today'],
+            'fecha_salida' => ['required', 'date', 'after:fecha_entrada'],
+            'cantidad_huespedes' => ['required', 'integer', 'min:1'],
         ]);
 
-        $alojamiento = Alojamiento::findOrFail($datos['alojamiento_id']);
+        DB::transaction(function () use ($datos, $request): void {
+            $alojamiento = Alojamiento::query()->whereKey($datos['alojamiento_id'])->lockForUpdate()->firstOrFail();
 
-        if ($alojamiento->estado !== 'disponible') {
-            throw ValidationException::withMessages([
-                'alojamiento_id' => 'Este alojamiento no está disponible.',
+            if ($alojamiento->estado !== 'disponible' || $alojamiento->user_id === null) {
+                throw ValidationException::withMessages([
+                    'alojamiento_id' => 'Este alojamiento no está disponible.',
+                ]);
+            }
+
+            if ($datos['cantidad_huespedes'] > $alojamiento->capacidad) {
+                throw ValidationException::withMessages([
+                    'cantidad_huespedes' => 'La cantidad de huéspedes supera la capacidad del alojamiento.',
+                ]);
+            }
+
+            $reservaExistente = Reserva::query()
+                ->where('alojamiento_id', $alojamiento->id)
+                ->whereIn('estado', ['pendiente', 'confirmada'])
+                ->where('fecha_entrada', '<', $datos['fecha_salida'])
+                ->where('fecha_salida', '>', $datos['fecha_entrada'])
+                ->lockForUpdate()
+                ->exists();
+
+            if ($reservaExistente) {
+                throw ValidationException::withMessages([
+                    'fecha_entrada' => 'El alojamiento ya tiene una reserva para esas fechas.',
+                ]);
+            }
+
+            $noches = Carbon::parse($datos['fecha_entrada'])->diffInDays(Carbon::parse($datos['fecha_salida']));
+            $precioNoche = number_format((float) $alojamiento->precio_por_noche, 2, '.', '');
+            [$unidades, $centavos] = array_pad(explode('.', $precioNoche, 2), 2, '00');
+            $precioTotalCentavos = (((int) $unidades * 100) + (int) str_pad(substr($centavos, 0, 2), 2, '0')) * $noches;
+
+            if ($precioTotalCentavos > 999999999999) {
+                throw ValidationException::withMessages([
+                    'fecha_salida' => 'El valor total supera el máximo permitido para una reserva.',
+                ]);
+            }
+
+            $precioTotal = intdiv($precioTotalCentavos, 100).'.'.str_pad((string) ($precioTotalCentavos % 100), 2, '0', STR_PAD_LEFT);
+
+            $request->user()->reservas()->create([
+                'alojamiento_id' => $alojamiento->id,
+                'fecha_entrada' => $datos['fecha_entrada'],
+                'fecha_salida' => $datos['fecha_salida'],
+                'cantidad_huespedes' => $datos['cantidad_huespedes'],
+                'precio_total' => $precioTotal,
+                'estado' => 'pendiente',
             ]);
-        }
+        });
 
-        if ($datos['cantidad_huespedes'] > $alojamiento->capacidad) {
-            throw ValidationException::withMessages([
-                'cantidad_huespedes' => 'La cantidad de huéspedes supera la capacidad del alojamiento.',
-            ]);
-        }
-
-        // Comprobar que no existan reservas que se crucen con las fechas solicitadas
-        $reservaExistente = Reserva::where('alojamiento_id', $alojamiento->id)
-            ->whereIn('estado', ['pendiente', 'confirmada'])
-            ->where('fecha_entrada', '<', $datos['fecha_salida'])
-            ->where('fecha_salida', '>', $datos['fecha_entrada'])
-            ->exists();
-
-        if ($reservaExistente) {
-            throw ValidationException::withMessages([
-                'fecha_entrada' => 'El alojamiento ya tiene una reserva para esas fechas.',
-            ]);
-        }
-
-        // Calcular el precio total en el servidor
-        $fechaEntrada = new \DateTime($datos['fecha_entrada']);
-        $fechaSalida = new \DateTime($datos['fecha_salida']);
-        $noches = $fechaEntrada->diff($fechaSalida)->days;
-
-        $precioTotal = $noches * $alojamiento->precio_por_noche;
-
-        Reserva::create([
-            'user_id' => Auth::id(),
-            'alojamiento_id' => $alojamiento->id,
-            'fecha_entrada' => $datos['fecha_entrada'],
-            'fecha_salida' => $datos['fecha_salida'],
-            'cantidad_huespedes' => $datos['cantidad_huespedes'],
-            'precio_total' => $precioTotal,
-            'estado' => 'pendiente',
-        ]);
-
-        return redirect()->route('reservas.index')
-            ->with('success', '¡Tu reserva se ha registrado correctamente!');
+        return redirect()->route('reservas.index')->with('success', '¡Tu reserva se ha registrado correctamente!');
     }
 
-    // Mostrar los detalles de una reserva
-    public function show(Reserva $reserva)
+    public function show(Reserva $reserva): View
     {
-        $this->autorizarReserva($reserva);
-
-        $reserva->load('alojamiento');
+        $this->authorize('view', $reserva);
+        $reserva->load(['alojamiento', 'usuario']);
 
         return view('reservas.show', compact('reserva'));
     }
 
-    // Cancelar una reserva
-    public function cancel(Reserva $reserva)
+    public function cancel(Request $request, Reserva $reserva): RedirectResponse
     {
-        $this->autorizarReserva($reserva);
+        $this->authorize('update', $reserva);
 
-        if ($reserva->estado === 'cancelada') {
-            return back()->with('error', 'Esta reserva ya está cancelada.');
-        }
+        DB::transaction(function () use ($reserva): void {
+            $lockedReserva = Reserva::query()->whereKey($reserva->id)->lockForUpdate()->firstOrFail();
 
-        $reserva->update([
-            'estado' => 'cancelada',
-        ]);
+            if ($lockedReserva->estado === 'cancelada') {
+                throw ValidationException::withMessages(['reserva' => 'Esta reserva ya está cancelada.']);
+            }
 
-        return redirect()->route('reservas.index')
-            ->with('success', 'La reserva se ha cancelado correctamente.');
+            $lockedReserva->update(['estado' => 'cancelada']);
+        });
+
+        return redirect()->route('reservas.index')->with('success', 'La reserva se ha cancelado correctamente.');
     }
 
-    // Verificar que la reserva pertenezca al usuario autenticado
-    private function autorizarReserva(Reserva $reserva): void
+    public function confirm(Reserva $reserva): RedirectResponse
     {
-        abort_unless($reserva->user_id === Auth::id(), 403);
+        $this->authorize('confirm', $reserva);
+
+        DB::transaction(function () use ($reserva): void {
+            $lockedReserva = Reserva::query()->whereKey($reserva->id)->lockForUpdate()->firstOrFail();
+            $this->authorize('confirm', $lockedReserva);
+            $lockedReserva->update(['estado' => 'confirmada']);
+        });
+
+        return redirect()->route('reservas.index')->with('success', 'La reserva se ha confirmado correctamente.');
     }
 }
