@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -27,12 +28,13 @@ class AuthController extends Controller
             'email' => $datos['email'],
             'password' => Hash::make($datos['password']),
         ]);
+        $usuario->forceFill(['role' => User::ROLE_CLIENT])->save();
 
         Auth::login($usuario);
 
         $request->session()->regenerate();
 
-        return redirect()->route('alojamientos.index')
+        return redirect()->route('dashboard')
             ->with('success', 'Cuenta creada correctamente. ¡Bienvenido a StayBook!');
     }
 
@@ -51,7 +53,7 @@ class AuthController extends Controller
         if (Auth::attempt($credenciales, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('alojamientos.index'))
+            return redirect()->route('dashboard')
                 ->with('success', 'Bienvenido a StayBook.');
         }
 
@@ -71,4 +73,3 @@ class AuthController extends Controller
             ->with('success', 'Has cerrado sesión correctamente.');
     }
 }
-

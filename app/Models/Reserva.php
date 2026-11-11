@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -29,11 +30,11 @@ class Reserva extends Model
 
     public function usuario(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
     public function alojamiento(): BelongsTo
     {
-        return $this->belongsTo(Alojamiento::class);
+        return $this->belongsTo(Alojamiento::class)->withTrashed();
     }
 }
