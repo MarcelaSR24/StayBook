@@ -23,7 +23,7 @@ Desarrollar una aplicación web que permita gestionar alojamientos y sus respect
 |---|---|
 | Marcela | Líder técnica y responsable de calidad |
 | Stiven | Responsable de pruebas |
-| Camila | Responsable del proyecto |
+| Camila | Responsable de documentación y organización de evidencias |
 
 # Funcionalidades principales
 
@@ -56,6 +56,12 @@ Esta sección se actualizará cuando el equipo haya verificado los pasos de inst
 
 Los casos y resultados de las pruebas se documentarán en el plan de pruebas y en la carpeta de evidencias, una vez se hayan ejecutado.
 
+## Tablero de seguimiento
+
+El avance y la distribución de actividades del equipo se gestionan mediante Trello.
+
+**Enlace al tablero:** https://trello.com/invite/b/6ac6557da7aa67f61c8e2ea7/ATTId5c34748a0c854219e8c39f090b32755882EF6FF/taller-final
+
 # Estado del proyecto
 
-Proyecto en desarrollo.
+Proyecto desarrollado.
