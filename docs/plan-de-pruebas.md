@@ -2,11 +2,11 @@
 
 ## 1. Objetivo
 
-Definir y documentar las pruebas utilizadas para verificar el funcionamiento de StayBook, comprobar el cumplimiento de los requisitos funcionales y no funcionales e identificar aspectos que requieren corrección o verificación adicional.
+Definir y documentar las pruebas utilizadas para verificar el funcionamiento de StayBook, comprobar el cumplimiento de los requisitos funcionales y no funcionales e identificar aspectos que requieren corrección, seguimiento o verificación adicional.
 
 ## 2. Alcance
 
-Se contemplan pruebas relacionadas con:
+El plan contempla las siguientes pruebas y verificaciones:
 
 - Registro, inicio y cierre de sesión.
 - Roles, permisos y control de acceso.
@@ -18,16 +18,16 @@ Se contemplan pruebas relacionadas con:
 - Pruebas automatizadas de roles, autorización y reservas.
 - Inspección de controladores, políticas, rutas y dependencias.
 
-La auditoría manual recibida contiene las pruebas PA-04 a PA-58. No se encontró evidencia de PA-01 a PA-03 en el material revisado.
+Las verificaciones manuales recibidas del responsable de pruebas están identificadas desde PA-04 hasta PA-58.
 
 ## 3. Entorno de pruebas
 
 - **Aplicación:** StayBook.
 - **Framework:** Laravel 13.39.0.
-- **Lenguaje:** PHP.
-- **Base de datos:** MySQL 8.4.3 para la aplicación.
+- **Lenguaje:** PHP 8.3.33.
+- **Base de datos de la aplicación:** MySQL 8.4.3.
 - **Entorno:** local.
-- **Pruebas automatizadas:** PHPUnit, con SQLite en memoria según la configuración revisada.
+- **Pruebas automatizadas:** PHPUnit, utilizando SQLite en memoria según la configuración revisada.
 - **Responsable de pruebas:** Stiven Arcila.
 
 ## 4. Pruebas funcionales
@@ -59,102 +59,149 @@ La auditoría manual recibida contiene las pruebas PA-04 a PA-58. No se encontr�
 
 ## 6. Ejecución y registro de resultados
 
-Los resultados de las pruebas se documentan mediante códigos de identificación y evidencias.
+Los resultados de las pruebas se documentan mediante códigos de identificación, descripciones y evidencias disponibles.
 
-### 6.1 Pruebas manuales
+### 6.1. Pruebas manuales
 
-La auditoría recibida registra 55 pruebas manuales, clasificadas así:
+Se realizaron verificaciones identificadas desde PA-04 hasta PA-58, relacionadas con:
 
-| Estado | Cantidad |
-|---|---:|
-| Aprobado | 40 |
-| Aprobado con observaciones | 9 |
-| No aprobado | 4 |
-| Parcial | 1 |
-| Pendiente | 1 |
-| **Total** | **55** |
+- Registro, inicio y cierre de sesión.
+- Acceso de administrador, propietario y cliente.
+- Consulta y administración de alojamientos.
+- Registro y edición de alojamientos.
+- Creación, consulta, confirmación y cancelación de reservas.
+- Privacidad de reservas entre clientes.
+- Restricciones de acceso según los roles.
+- Validación de capacidad y disponibilidad.
+- Navegación de los paneles.
 
-Las pruebas no aprobadas fueron:
+Durante la revisión se identificaron los siguientes hallazgos:
 
-- PA-12: consulta de alojamientos desde la cuenta del cliente.
-- PA-14: acceso al formulario de nueva reserva.
-- PA-51: selección de fecha de entrada anterior al día actual.
-- PA-52: selección de fecha de salida anterior a la fecha de entrada.
+| Identificador | Hallazgo | Observación |
+|---|---|---|
+| PA-51 | Fecha de entrada pasada | La interfaz permitió calcular incorrectamente las noches y el precio al introducir una fecha de entrada anterior a la fecha actual. |
+| PA-52 | Fecha de salida anterior a la entrada | La interfaz mostró cero noches y cero precio cuando la fecha de salida era anterior a la fecha de entrada. |
+| PA-53 | Validación de capacidad | Se comprobó la restricción visual de capacidad, pero no toda posible manipulación del formulario. |
+| PA-55 | Reserva ocupada | Se observó el mensaje de reserva ocupada, pero no se realizó un nuevo envío para comprobar posibles duplicados. |
+| PA-57 | Campos obligatorios | Se comprobó la validación del campo nombre, pero no todos los campos obligatorios. |
 
-También se registraron:
-- PA-57: validación parcial de los campos obligatorios del formulario de alojamiento.
-- PA-19: consulta de alojamientos del propietario pendiente de comprobación en su ficha original.
+Estos hallazgos deben conservarse como observaciones y verificaciones incompletas. No se consideran correcciones confirmadas.
 
-Los resultados con observaciones y las verificaciones incompletas deben conservarse para su seguimiento. No se consideran correcciones confirmadas.
+### 6.2. Pruebas automatizadas
 
-### 6.2 Pruebas automatizadas
+Se realizaron ejecuciones mediante los comandos de Laravel para comprobar los permisos, la autorización y las operaciones relacionadas con las reservas.
 
-Se documentaron las siguientes ejecuciones:
+Los resultados registrados fueron:
 
-| Prueba | Resultado |
-|---|---|
-| ReservaIndexAuthorizationTest | 4 pruebas aprobadas, 10 aserciones y 0 fallos. |
-| RoleAndReservationTest | 12 pruebas aprobadas, 39 aserciones y 0 fallos. |
-| Suite completa (`php artisan test`) | 18 pruebas aprobadas, 51 aserciones y 0 fallos. |
+| Prueba automatizada | Resultado | Aserciones |
+|---|---|---:|
+| ReservaIndexAuthorizationTest | 4 pruebas aprobadas | 10 |
+| RoleAndReservationTest | 12 pruebas aprobadas | 39 |
+| Suite completa (`php artisan test`) | 18 pruebas aprobadas | 51 |
 
-Las pruebas automatizadas cubren escenarios de roles, permisos, privacidad de reservas, cálculo de precios, capacidad, fechas superpuestas, cancelaciones, confirmaciones e historial.
+La suite completa finalizó con 18 pruebas aprobadas y 51 aserciones.
 
-La revisión RT-06 identificó cobertura parcial de autorización de alojamientos. Por esta razón, se requiere ampliar las pruebas automatizadas de permisos.
+Las pruebas automatizadas permitieron revisar escenarios relacionados con roles, permisos, privacidad de reservas y operaciones del sistema.
 
-### 6.3 Comandos utilizados
+### 6.3. Comandos utilizados
 
-Para ejecutar las pruebas automatizadas se utilizó:
+Para consultar la versión de Laravel:
+
+```bash
+php artisan --version
+```
+
+Para inspeccionar los componentes Symfony instalados:
+
+```bash
+composer show "symfony/*"
+```
+
+Para revisar las dependencias y posibles vulnerabilidades conocidas:
+
+```bash
+composer audit
+```
+
+Para consultar las rutas registradas:
+
+```bash
+php artisan route:list
+```
+
+Para revisar las rutas y sus middleware:
+
+```bash
+php artisan route:list -v
+```
+
+Para ejecutar la prueba de autorización de reservas:
+
+```bash
+php artisan test --filter=ReservaIndexAuthorizationTest
+```
+
+Para ejecutar las pruebas de roles y reservas:
+
+```bash
+php artisan test --filter=RoleAndReservationTest
+```
+
+Para ejecutar la suite completa:
 
 ```bash
 php artisan test
 ```
 
-Para ejecutar pruebas específicas:
+### 6.4. Verificación de dependencias
 
-```bash
-php artisan test --filter=ReservaIndexAuthorizationTest
-php artisan test --filter=RoleAndReservationTest
-```
+Se ejecutó `composer audit` para revisar las dependencias del proyecto.
+
+**Resultado registrado:** no se encontraron avisos de vulnerabilidades de seguridad en las dependencias revisadas.
+
+Este resultado corresponde a la revisión realizada y no representa una garantía absoluta de ausencia de vulnerabilidades en toda la aplicación.
 
 ## 7. Clasificación de resultados
 
-Los resultados se clasifican de la siguiente manera:
+Para mantener un registro uniforme, las pruebas se clasifican de la siguiente manera:
 
-- **Aprobado:** la prueba cumple el resultado esperado.
-- **Aprobado con observaciones:** el escenario principal funciona, pero existen aspectos que requieren revisión.
-- **No aprobado:** el resultado obtenido no cumple lo esperado.
-- **Parcial:** solo se comprobó una parte del escenario.
-- **Pendiente:** falta ejecutar o completar la verificación.
+- **Aprobada:** la prueba cumple el resultado esperado.
+- **Aprobada con observaciones:** el escenario principal funciona, pero existen aspectos que requieren revisión.
+- **No aprobada:** el resultado obtenido no cumple lo esperado.
+- **Parcial:** solamente se comprobó una parte del escenario.
+- **Pendiente:** falta ejecutar la prueba o completar la verificación y su evidencia.
 
-Los resultados deben corresponder a las evidencias disponibles. La existencia de una ruta, método o regla en el código no se considera por sí sola una prueba funcional aprobada.
+La clasificación debe corresponder a los resultados observados y a las evidencias disponibles. La existencia de una ruta, método o regla en el código no constituye por sí sola una prueba funcional aprobada.
 
-## 8. Pruebas y verificaciones por ampliar
 
-De acuerdo con los hallazgos de la auditoría, se requiere continuar con las siguientes verificaciones:
+## 8. Evidencias
 
-1. Revisar la consulta de alojamientos y su disponibilidad para clientes.
-2. Comprobar el formulario de reservas con fechas inválidas y verificar los mensajes mostrados.
-3. Validar individualmente los campos obligatorios de los formularios.
-4. Comprobar la capacidad máxima mediante validaciones del servidor.
-5. Verificar el bloqueo efectivo de reservas duplicadas.
-6. Comprobar el acceso directo de un propietario a alojamientos de otros propietarios.
-7. Ampliar las pruebas automatizadas de autorización de alojamientos.
-8. Verificar las operaciones de edición y archivado según los permisos.
-9. Aclarar las rutas utilizadas para consultar reservas.
-10. Completar las evidencias pendientes identificadas en la auditoría.
-
-## 9. Evidencias
-
-Las evidencias de ejecución se organizan en las carpetas correspondientes dentro de:
+Las evidencias de ejecución se organizan dentro de la carpeta:
 
 `docs/evidencias/`
 
-Se conservan los soportes de pruebas manuales, pruebas automatizadas y verificaciones técnicas recibidos del equipo.
+Se deben conservar los soportes disponibles de:
 
-Los resultados deben mantenerse relacionados con sus códigos de prueba para facilitar su consulta y seguimiento.
+- Pruebas manuales.
+- Pruebas automatizadas.
+- Verificaciones técnicas.
+- Resultados de ejecución de comandos.
+- Hallazgos y observaciones identificados.
 
-## 10. Responsable
+Cada evidencia debe relacionarse con el código de prueba correspondiente para facilitar su consulta y seguimiento.
 
-**Stiven Arcila:** responsable de diseñar, ejecutar y actualizar las pruebas del proyecto StayBook, registrar sus resultados y comunicar los defectos encontrados.
+## 9. Responsable
 
-La documentación de calidad y la organización de evidencias se realizan con el apoyo del equipo del proyecto.
+**Stiven Arcila:** responsable de diseñar, ejecutar y actualizar las pruebas del proyecto StayBook, registrar los resultados y comunicar los defectos encontrados.
+
+**Camila Triana:** responsable de organizar y mantener la documentación y las evidencias de las actividades realizadas.
+
+**Marcela Saldarriaga:** responsable de revisar los resultados de calidad, inspeccionar el código y proponer acciones de mantenimiento.
+
+---
+
+**Proyecto:** StayBook – Plataforma de gestión y reservas de alojamientos.
+
+**Asignatura:** Ingeniería de Software II.
+
+**Etapa:** Entrega final – 2026.

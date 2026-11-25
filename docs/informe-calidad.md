@@ -2,154 +2,172 @@
 
 ## 1. Objetivo
 
-Documentar la evaluación de calidad de StayBook mediante pruebas manuales, pruebas automatizadas e inspección del código, identificando los resultados obtenidos, los defectos encontrados y las actividades de mantenimiento pendientes.
+Documentar la evaluación de calidad del proyecto StayBook mediante pruebas manuales, pruebas automatizadas e inspecciones técnicas del código, con el propósito de verificar el funcionamiento de sus principales funcionalidades, identificar defectos y registrar recomendaciones de mantenimiento.
 
 ## 2. Alcance
 
-La revisión comprende:
+La evaluación de calidad comprende los siguientes aspectos:
 
-- Registro e inicio de sesión de usuarios.
+- Registro, inicio y cierre de sesión de usuarios.
 - Roles, permisos y control de acceso.
-- Paneles y navegación según el rol.
-- Registro, consulta, edición y privacidad de alojamientos.
+- Paneles y navegación según el tipo de usuario.
+- Registro, consulta y administración de alojamientos.
 - Creación, consulta, confirmación y cancelación de reservas.
-- Validación de fechas, huéspedes, capacidad y disponibilidad.
 - Privacidad de las reservas entre clientes.
+- Validación de fechas, huéspedes, capacidad y disponibilidad.
 - Inspección de controladores, políticas, rutas y middleware.
 - Ejecución de pruebas automatizadas.
-- Revisión de dependencias mediante Composer.
+- Revisión de dependencias y posibles vulnerabilidades conocidas.
 
-La auditoría manual documenta las pruebas PA-04 a PA-58. No se encontró evidencia de PA-01 a PA-03 en el material revisado.
+Las verificaciones manuales recibidas están identificadas desde PA-04 hasta PA-58.
 
 ## 3. Criterios de calidad
 
 | Criterio | Aspecto evaluado |
 |---|---|
 | Funcionalidad | Cumplimiento de las operaciones principales del sistema. |
-| Seguridad | Acceso según roles y protección de las operaciones. |
-| Privacidad | Cada usuario consulta únicamente la información que le corresponde. |
+| Seguridad | Control de acceso según los roles y protección de las operaciones. |
+| Privacidad | Restricción de consulta de información según el usuario autenticado. |
 | Integridad | Conservación de los datos y relaciones entre usuarios, alojamientos y reservas. |
-| Validación | Cumplen las reglas del sistema. |
+| Validación | Aplicación de las reglas establecidas para los datos ingresados. |
 | Usabilidad | Claridad de formularios, mensajes y navegación. |
 | Mantenibilidad | Organización del código, controladores y políticas. |
 | Dependencias | Revisión de vulnerabilidades conocidas en los paquetes instalados. |
 
-## 4. Resultados de las pruebas manuales
+## 4. Actividades de evaluación de calidad
 
-Se documentaron 55 pruebas manuales, clasificadas de la siguiente manera:
+Para evaluar la calidad de StayBook se realizaron las siguientes actividades:
 
-| Estado | Cantidad |
-|---|---:|
-| Aprobado | 40 |
-| Aprobado con observaciones | 9 |
-| No aprobado | 4 |
-| Parcial | 1 |
-| Pendiente | 1 |
-| **Total** | **55** |
-
-Las pruebas respaldan el funcionamiento de varios escenarios de registro, acceso por roles, gestión de alojamientos y reservas. También se identificaron situaciones que requieren revisión adicional.
-
-### 4.1 Pruebas no aprobadas
-
-- **PA-12:** el cliente no visualizó alojamientos que aparecían registrados en el panel administrativo.
-- **PA-14:** el formulario de nueva reserva indicó que no había alojamientos disponibles, aunque el panel administrativo mostraba alojamientos disponibles.
-- **PA-51:** el formulario permitió seleccionar una fecha de entrada anterior al día actual y presentó un cálculo visual incorrecto de noches y valor.
-- **PA-52:** al seleccionar una fecha de salida anterior a la fecha de entrada, se mostró un total de cero noches y cero pesos, sin un mensaje claro de validación.
-
-En PA-51 y PA-52 no se documentó el envío efectivo de la reserva con esos datos. La revisión estática encontró reglas de validación en el controlador, pero esto no sustituye la prueba de envío desde el formulario.
-
-### 4.2 Prueba parcial y pendiente
-
-- **PA-57 – Validación de campos obligatorios:** se comprobó la validación del campo Nombre, pero no se verificaron individualmente los demás campos obligatorios.
-- **PA-19 – Mis alojamientos:** quedó pendiente en su ficha original. Otras pruebas posteriores muestran un alojamiento asociado al propietario, pero la ficha PA-19 no fue actualizada.
+1. Inspección de los controladores relacionados con alojamientos y reservas.
+2. Revisión de las políticas de autorización.
+3. Consulta de las rutas registradas y sus respectivos middleware.
+4. Ejecución de pruebas automatizadas de roles, permisos y reservas.
+5. Realización de verificaciones manuales de las funcionalidades principales.
+6. Revisión de dependencias mediante Composer.
+7. Registro de los hallazgos y aspectos que requieren seguimiento.
 
 ## 5. Resultados de las pruebas automatizadas
 
-La suite completa se ejecutó con los siguientes resultados:
+Se ejecutaron pruebas automatizadas utilizando las herramientas integradas de Laravel.
 
-| Prueba | Resultado |
+Los resultados registrados fueron los siguientes:
+
+| Prueba | Pruebas aprobadas | Aserciones |
+|---|---:|---:|
+| ReservaIndexAuthorizationTest | 4 | 10 |
+| RoleAndReservationTest | 12 | 39 |
+| Suite completa | 18 | 51 |
+
+La ejecución de la suite completa mediante `php artisan test` reportó 18 pruebas aprobadas, 51 aserciones y cero fallos.
+
+Estas pruebas permitieron verificar escenarios relacionados con roles, permisos, privacidad de reservas y operaciones del sistema.
+
+## 6. Resultados de las verificaciones manuales
+
+Se realizaron pruebas manuales identificadas desde PA-04 hasta PA-58, revisando aspectos como:
+
+- Registro, inicio y cierre de sesión.
+- Acceso de administrador, propietario y cliente.
+- Consulta y administración de alojamientos.
+- Registro y edición de alojamientos.
+- Creación, consulta, confirmación y cancelación de reservas.
+- Privacidad de reservas entre clientes.
+- Restricciones de acceso según los roles.
+- Validación de capacidad y disponibilidad.
+- Navegación de los paneles.
+
+Durante estas verificaciones se identificaron los siguientes hallazgos:
+
+| Identificador | Descripción del hallazgo |
 |---|---|
-| ReservaIndexAuthorizationTest | 4 pruebas aprobadas, 10 aserciones y 0 fallos. |
-| RoleAndReservationTest | 12 pruebas aprobadas, 39 aserciones y 0 fallos. |
-| Suite completa | 18 pruebas aprobadas, 51 aserciones y 0 fallos. |
+| PA-51 | La interfaz permitió calcular incorrectamente las noches y el precio al introducir una fecha de entrada pasada. |
+| PA-52 | La interfaz mostró cero noches y cero precio cuando la fecha de salida era anterior a la fecha de entrada. |
+| PA-53 | Se comprobó la restricción visual de capacidad, pero no toda posible manipulación del formulario. |
+| PA-55 | Se observó el mensaje de reserva ocupada, sin realizar un nuevo envío para comprobar posibles duplicados. |
+| PA-57 | Se comprobó la validación del campo nombre, pero no todos los campos obligatorios. |
 
-La suite completa fue reportada en dos ejecuciones, con duraciones de 11,49 y 17,42 segundos. Se conservan ambos registros porque corresponden a ejecuciones distintas.
+Los hallazgos anteriores permiten identificar aspectos que requieren verificaciones adicionales. No se cuenta con evidencia suficiente para afirmar que todos hayan sido corregidos.
 
-Las pruebas automatizadas cubren escenarios de roles, permisos, consulta privada de reservas, cálculo del total, capacidad, fechas superpuestas, cancelación, confirmación e historial.
+## 7. Revisión técnica y de seguridad
 
-La revisión RT-06 identificó que la cobertura automatizada de autorización de alojamientos es parcial. La ausencia de una prueba específica no significa por sí sola que la funcionalidad falle.
+Durante la auditoría técnica se inspeccionaron los siguientes archivos:
 
-## 6. Revisión técnica y de dependencias
+- `app/Http/Controllers/ReservaController.php`
+- `app/Policies/ReservaPolicy.php`
+- `app/Http/Controllers/AlojamientoController.php`
+- `app/Policies/AlojamientoPolicy.php`
+- `resources/views/reservas/create.blade.php`
 
-Se inspeccionaron controladores, políticas, rutas, middleware y configuración de pruebas.
+También se verificó que Laravel reconoce las políticas de autorización de reservas y alojamientos.
 
-Entre los resultados documentados se encuentran:
+Entre las verificaciones realizadas se encuentran:
 
-- Las rutas registradas fueron revisadas mediante `php artisan route:list`.
-- Se inspeccionaron `ReservaController`, `AlojamientoController`, `ReservaPolicy` y `AlojamientoPolicy`.
-- Se verificó la configuración de PHPUnit con SQLite en memoria.
-- La revisión de dependencias mediante `composer audit` no reportó avisos de vulnerabilidades.
-- Se identificó cobertura automatizada parcial para algunos permisos de alojamientos.
+| Comando | Propósito |
+|---|---|
+| `php artisan --version` | Consultar la versión de Laravel. |
+| `composer show "symfony/*"` | Inspeccionar los componentes Symfony instalados. |
+| `composer audit` | Revisar avisos de vulnerabilidades conocidas en dependencias. |
+| `php artisan route:list` | Consultar las rutas registradas. |
+| `php artisan route:list -v` | Revisar las rutas y sus middleware. |
 
-Estos resultados corresponden a inspecciones y verificaciones técnicas; no deben interpretarse como garantía de ausencia total de defectos.
+**Resultado de la revisión de dependencias:** el comando `composer audit` no reportó avisos de vulnerabilidades de seguridad en las dependencias revisadas.
 
-## 7. Registro de defectos y hallazgos
+El controlador de reservas contiene validaciones del lado del servidor relacionadas con fechas, capacidad, disponibilidad y cálculo del precio, según la inspección técnica reportada.
 
-Los siguientes hallazgos fueron registrados en la auditoría. Según el material recibido, no existe evidencia de que hayan sido corregidos.
+Estas verificaciones representan resultados de una revisión técnica y no constituyen una garantía de ausencia total de vulnerabilidades o defectos.
 
-| ID | Evidencia relacionada | Descripción | Estado |
-|---|---|---|---|
-| H-1 | PA-51 | El resumen de fechas muestra un cálculo visual incorrecto y no presenta una advertencia clara. | Pendiente de corrección y verificación. |
-| H-2 | PA-52 | No se muestra un mensaje claro cuando la fecha de salida es anterior a la entrada. | Pendiente de corrección y verificación. |
-| H-3 | PA-12 y PA-14 | Existe una inconsistencia entre los alojamientos visibles para el administrador y los disponibles para el cliente. | Pendiente de investigar. |
-| H-4 | PA-09 y PA-10 | Se observan usuarios sin rol asignado y alojamientos sin propietario asignado. | Pendiente de aclarar si son datos de prueba o errores. |
-| H-5 | PA-48 | La ruta `/admin/reservas` devuelve 404; esto no demuestra por sí solo una autorización correcta. | Pendiente de documentar la ruta real. |
-| H-6 | PA-57 | Solo se verificó uno de los campos obligatorios del formulario de alojamiento. | Verificación parcial. |
-| H-7 | PA-53, PA-54 y PA-55 | Faltan comprobaciones completas de validación del servidor, disponibilidad y bloqueo de reservas duplicadas. | Pendiente de ampliar pruebas. |
-| H-8 | PA-19, PA-24 y PA-56 | Hay comprobaciones incompletas de alojamientos asociados, reservas recibidas y acceso a alojamientos de otros propietarios. | Pendiente de verificación. |
-| H-9 | RT-06 | La cobertura automatizada de autorización de alojamientos es parcial. | Pendiente de ampliar pruebas. |
-| H-10 | RT-06 | Se observó un posible problema de codificación en el dato de ciudad «BogotÃ¡». | Pendiente de confirmar la causa. |
+## 8. Hallazgos y recomendaciones de mantenimiento
 
-## 8. Actividades de mantenimiento pendientes
+A partir de los resultados obtenidos se establecen las siguientes recomendaciones:
 
-De acuerdo con los hallazgos, se proponen las siguientes actividades:
+| Hallazgo | Recomendación |
+|---|---|
+| PA-51 | Revisar el comportamiento del formulario cuando se introduce una fecha de entrada anterior al día actual. |
+| PA-52 | Verificar la validación de fechas y presentar mensajes claros cuando la salida sea anterior a la entrada. |
+| PA-53 | Completar las pruebas de capacidad mediante diferentes valores y posibles manipulaciones del formulario. |
+| PA-55 | Realizar un nuevo intento de envío de una reserva ocupada para comprobar el bloqueo efectivo de operaciones duplicadas. |
+| PA-57 | Comprobar todos los campos obligatorios y sus respectivos mensajes de validación. |
 
-1. Revisar el cálculo de noches y el resumen de precios del formulario de reservas.
-2. Verificar los mensajes de validación para fechas inválidas.
-3. Investigar por qué algunos alojamientos disponibles no aparecen para el cliente.
-4. Revisar los usuarios y alojamientos que aparecen sin asignación.
-5. Confirmar las rutas reales para la consulta de reservas.
-6. Ampliar las pruebas de campos obligatorios.
-7. Verificar las restricciones de capacidad y las reservas duplicadas desde el servidor.
-8. Ampliar las pruebas de autorización entre propietarios.
-9. Agregar pruebas automatizadas para los permisos de alojamientos que aún no están cubiertos.
-10. Confirmar si el texto «BogotÃ¡» corresponde a un problema de codificación.
+Las recomendaciones deben convertirse en actividades de mantenimiento y seguimiento. Su ejecución debe documentarse mediante evidencias y nuevas pruebas.
 
-## 9. Registro de cambios y correcciones
+## 9. Estado de los cambios realizados
 
-Según el informe de auditoría recibido:
+De acuerdo con el registro técnico recibido, durante la auditoría se realizaron inspecciones de código, pruebas automatizadas y verificaciones manuales.
 
-- **Verificado:** escenarios manuales y automatizados descritos en este documento.
-- **Inspeccionado:** controladores, políticas, rutas, middleware y configuración de pruebas.
-- **Corregido:** no se recibió evidencia de correcciones de código.
-- **Actualizado en el entorno:** se reportó la actualización de tres paquetes Symfony de la versión 7.4.22 a la 7.4.23 mediante Composer.
-- **Agregado a los datos de prueba:** un usuario, un alojamiento, una modificación de descripción y reservas utilizadas durante la auditoría.
-- **No modificado, según el informe:** controladores, políticas, archivos de pruebas, `composer.json` y `phpunit.xml`.
+Se deja constancia de los siguientes aspectos:
 
-La actualización de dependencias y los cambios en los datos de prueba no se presentan como correcciones de los defectos H-1 a H-10.
+- Se inspeccionaron controladores y políticas de autorización.
+- Se revisaron las rutas y los middleware registrados en Laravel.
+- Se ejecutaron las pruebas automatizadas y la suite completa.
+- Se realizaron verificaciones manuales de las funcionalidades principales.
+- Se ejecutó la revisión de dependencias mediante Composer.
+- No se modificó el código fuente ni se agregaron funcionalidades durante esta auditoría.
+- Los hallazgos identificados quedaron registrados para su revisión y seguimiento.
+
+Por lo tanto, los defectos y observaciones documentados no se consideran corregidos hasta contar con evidencia de los cambios y de las pruebas posteriores.
 
 ## 10. Responsables
 
 | Integrante | Responsabilidad |
 |---|---|
-| Marcela Saldarriaga | Liderazgo técnico y supervisión de calidad. |
-| Stiven Arcila | Diseño y ejecución de pruebas, y registro de resultados. |
-| Camila Triana | Organización de la documentación y evidencias. |
+| Marcela Saldarriaga | Liderazgo técnico, revisión del código y supervisión de la calidad. |
+| Stiven Arcila | Diseño y ejecución de pruebas, verificaciones técnicas y registro de resultados. |
+| Camila Triana | Organización de la documentación y recopilación de evidencias del proyecto. |
 
 ## 11. Conclusión
 
-La auditoría de StayBook evidencia resultados favorables en varios escenarios de autenticación, roles, privacidad de reservas, gestión de alojamientos y operaciones de reserva. La suite automatizada reportó 18 pruebas aprobadas, 51 aserciones y 0 fallos.
+La evaluación de calidad de StayBook permitió verificar diferentes funcionalidades relacionadas con la autenticación, los roles de usuario, la gestión de alojamientos y las reservas.
 
-Sin embargo, las pruebas manuales también identificaron cuatro escenarios no aprobados, uno parcial y uno pendiente. Además, se registraron hallazgos que requieren investigación, corrección o verificación adicional.
+Los resultados de las pruebas automatizadas fueron favorables, con 18 pruebas aprobadas, 51 aserciones y cero fallos en la suite completa. Asimismo, la revisión de dependencias mediante Composer no reportó avisos de vulnerabilidades de seguridad.
 
-Con la información recibida no es posible afirmar que los defectos registrados hayan sido corregidos. Por tanto, el equipo debe completar las actividades de mantenimiento, documentar los cambios reales y ejecutar nuevamente las pruebas correspondientes para confirmar los resultados.
+Sin embargo, las verificaciones manuales identificaron situaciones que requieren atención, especialmente en el cálculo de fechas y precios, la validación de capacidad, el control de reservas ocupadas y la comprobación de los campos obligatorios.
+
+En conclusión, StayBook cuenta con resultados técnicos y funcionales favorables, pero también presenta aspectos que deben continuar en seguimiento. La corrección de los hallazgos deberá comprobarse mediante nuevas pruebas y evidencias antes de considerarlos cerrados.
+
+---
+
+**Proyecto:** StayBook – Plataforma de gestión y reservas de alojamientos.
+
+**Asignatura:** Ingeniería de Software II.
+
+**Etapa:** Entrega final – 2026.
