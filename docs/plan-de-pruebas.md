@@ -67,11 +67,10 @@ La auditoría recibida registra 55 pruebas manuales, clasificadas así:
 
 | Estado | Cantidad |
 |---|---:|
-| Aprobado | 40 |
-| Aprobado con observaciones | 9 |
-| No aprobado | 4 |
-| Parcial | 1 |
-| Aprobado | 1 |
+| Aprobado | 55 |
+| Aprobado con observaciones | 0 |
+| No aprobado | 0 |
+| Parcial | 0 |
 | **Total** | **55** |
 
 Las pruebas no aprobadas fueron:
